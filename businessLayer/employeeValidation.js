@@ -63,7 +63,6 @@ function validateEmployee(company, emp_name, emp_no, hire_date, job, salary, dep
     }
 
     dl.close();
-
     return null;
 }
 
@@ -137,7 +136,6 @@ function validateEmployeeUpdate(company, emp_id, emp_name, emp_no, hire_date, jo
     }
 
     dl.close();
-
     return null;
 }
 

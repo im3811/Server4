@@ -3,20 +3,15 @@
 const express = require('express');
 const router = express.Router();
 const DataLayer = require('companydata');
+const { COMPANY_NAME } = require('../config');
 
 router.delete('/company', (req, res) => {
     try {
-        const company = req.query.company;
-        
-        if (!company) {
-            return res.json({ error: 'Company name is required.' });
-        }
-
-        const dl = new DataLayer(company);
-        const rowsDeleted = dl.deleteCompany(company);
+        const dl = new DataLayer(COMPANY_NAME);
+        const rowsDeleted = dl.deleteCompany(COMPANY_NAME);
         dl.close();
 
-        res.json({ success: `${company}'s information deleted.` });
+        res.json({ success: `${COMPANY_NAME}'s information deleted.` });
     } catch (error) {
         console.error(error);
         res.json({ error: 'Failed to delete company information.' });

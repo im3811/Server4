@@ -5,18 +5,18 @@ const router = express.Router();
 const DataLayer = require('companydata');
 const Department = DataLayer.prototype.Department;
 const { validateDepartment, validateDepartmentUpdate } = require('../businessLayer/departmentValidation');
+const { COMPANY_NAME } = require('../config');
 
 router.get('/department', (req, res) => {
     try {
-        const company = req.query.company;
         const dept_id = parseInt(req.query.dept_id);
 
-        if (!company || !dept_id) {
-            return res.json({ error: 'Company name and department ID are required.' });
+        if (!dept_id) {
+            return res.json({ error: 'Department ID is required.' });
         }
 
-        const dl = new DataLayer(company);
-        const department = dl.getDepartment(company, dept_id);
+        const dl = new DataLayer(COMPANY_NAME);
+        const department = dl.getDepartment(COMPANY_NAME, dept_id);
         dl.close();
 
         if (!department) {
@@ -40,14 +40,8 @@ router.get('/department', (req, res) => {
 
 router.get('/departments', (req, res) => {
     try {
-        const company = req.query.company;
-
-        if (!company) {
-            return res.json({ error: 'Company name is required.' });
-        }
-
-        const dl = new DataLayer(company);
-        const departments = dl.getAllDepartment(company);
+        const dl = new DataLayer(COMPANY_NAME);
+        const departments = dl.getAllDepartment(COMPANY_NAME);
         dl.close();
 
         const result = departments.map(dept => ({
@@ -69,15 +63,15 @@ router.get('/departments', (req, res) => {
 
 router.put('/department', (req, res) => {
     try {
-        const { company, dept_name, dept_no, location } = req.body;
+        const { dept_name, dept_no, location } = req.body;
 
-        const validationError = validateDepartment(company, dept_name, dept_no, location);
+        const validationError = validateDepartment(COMPANY_NAME, dept_name, dept_no, location);
         if (validationError) {
             return res.json({ error: validationError });
         }
 
-        const newDept = new Department(company, dept_name, dept_no, location);
-        const dl = new DataLayer(company);
+        const newDept = new Department(COMPANY_NAME, dept_name, dept_no, location);
+        const dl = new DataLayer(COMPANY_NAME);
         const insertedDept = dl.insertDepartment(newDept);
         dl.close();
 
@@ -104,15 +98,18 @@ router.put('/department', (req, res) => {
 
 router.post('/department', (req, res) => {
     try {
-        const { company, dept_id, dept_name, dept_no, location } = req.body;
+        const dept_id = req.body.dept_id;
+        const dept_name = req.body.dept_name;
+        const dept_no = req.body.dept_no;
+        const location = req.body.location;
 
-        const validationError = validateDepartmentUpdate(company, dept_id, dept_name, dept_no, location);
+        const validationError = validateDepartmentUpdate(COMPANY_NAME, dept_id, dept_name, dept_no, location);
         if (validationError) {
             return res.json({ error: validationError });
         }
 
-        const updateDept = new Department(company, dept_name, dept_no, location, parseInt(dept_id));
-        const dl = new DataLayer(company);
+        const updateDept = new Department(COMPANY_NAME, dept_name, dept_no, location, parseInt(dept_id));
+        const dl = new DataLayer(COMPANY_NAME);
         const updatedDept = dl.updateDepartment(updateDept);
         dl.close();
 
@@ -139,22 +136,21 @@ router.post('/department', (req, res) => {
 
 router.delete('/department', (req, res) => {
     try {
-        const company = req.query.company;
         const dept_id = parseInt(req.query.dept_id);
 
-        if (!company || !dept_id) {
-            return res.json({ error: 'Company name and department ID are required.' });
+        if (!dept_id) {
+            return res.json({ error: 'Department ID is required.' });
         }
 
-        const dl = new DataLayer(company);
-        const rowsDeleted = dl.deleteDepartment(company, dept_id);
+        const dl = new DataLayer(COMPANY_NAME);
+        const rowsDeleted = dl.deleteDepartment(COMPANY_NAME, dept_id);
         dl.close();
 
         if (rowsDeleted === 0) {
             return res.json({ error: 'Department not found or could not be deleted.' });
         }
 
-        res.json({ success: `Department ${dept_id} from ${company} deleted.` });
+        res.json({ success: `Department ${dept_id} from ${COMPANY_NAME} deleted.` });
     } catch (error) {
         console.error(error);
         res.json({ error: 'Failed to delete department.' });

@@ -5,6 +5,7 @@ const router = express.Router();
 const DataLayer = require('companydata');
 const Employee = DataLayer.prototype.Employee;
 const { validateEmployee, validateEmployeeUpdate } = require('../businessLayer/employeeValidation');
+const { COMPANY_NAME } = require('../config');
 
 router.get('/employee', (req, res) => {
     try {
@@ -14,7 +15,7 @@ router.get('/employee', (req, res) => {
             return res.json({ error: 'Employee ID is required.' });
         }
 
-        const dl = new DataLayer('temp');
+        const dl = new DataLayer(COMPANY_NAME);
         const employee = dl.getEmployee(emp_id);
         dl.close();
 
@@ -42,14 +43,8 @@ router.get('/employee', (req, res) => {
 
 router.get('/employees', (req, res) => {
     try {
-        const company = req.query.company;
-
-        if (!company) {
-            return res.json({ error: 'Company name is required.' });
-        }
-
-        const dl = new DataLayer(company);
-        const employees = dl.getAllEmployee(company);
+        const dl = new DataLayer(COMPANY_NAME);
+        const employees = dl.getAllEmployee(COMPANY_NAME);
         dl.close();
 
         const result = employees.map(emp => ({
@@ -75,9 +70,8 @@ router.get('/employees', (req, res) => {
 router.put('/employee', (req, res) => {
     try {
         const { emp_name, emp_no, hire_date, job, salary, dept_id, mng_id } = req.body;
-        const company = req.body.company;
 
-        const validationError = validateEmployee(company, emp_name, emp_no, hire_date, job, salary, dept_id, mng_id);
+        const validationError = validateEmployee(COMPANY_NAME, emp_name, emp_no, hire_date, job, salary, dept_id, mng_id);
         if (validationError) {
             return res.json({ error: validationError });
         }
@@ -92,8 +86,19 @@ router.put('/employee', (req, res) => {
             parseInt(mng_id)
         );
 
-        const dl = new DataLayer(company);
-        const insertedEmp = dl.insertEmployee(newEmp);
+        const dl = new DataLayer(COMPANY_NAME);
+        let insertedEmp;
+        
+        try {
+            insertedEmp = dl.insertEmployee(newEmp);
+        } catch (dbError) {
+            dl.close();
+            if (dbError.message && (dbError.message.includes('Duplicate') || dbError.message.includes('unique'))) {
+                return res.json({ error: 'Employee number must be unique. This emp_no already exists in the database.' });
+            }
+            throw dbError;
+        }
+        
         dl.close();
 
         if (!insertedEmp) {
@@ -122,10 +127,16 @@ router.put('/employee', (req, res) => {
 
 router.post('/employee', (req, res) => {
     try {
-        const { emp_id, emp_name, emp_no, hire_date, job, salary, dept_id, mng_id } = req.body;
-        const company = req.body.company;
+        const emp_id = req.body.emp_id;
+        const emp_name = req.body.emp_name;
+        const emp_no = req.body.emp_no;
+        const hire_date = req.body.hire_date;
+        const job = req.body.job;
+        const salary = req.body.salary;
+        const dept_id = req.body.dept_id;
+        const mng_id = req.body.mng_id;
 
-        const validationError = validateEmployeeUpdate(company, emp_id, emp_name, emp_no, hire_date, job, salary, dept_id, mng_id);
+        const validationError = validateEmployeeUpdate(COMPANY_NAME, emp_id, emp_name, emp_no, hire_date, job, salary, dept_id, mng_id);
         if (validationError) {
             return res.json({ error: validationError });
         }
@@ -141,8 +152,19 @@ router.post('/employee', (req, res) => {
             parseInt(emp_id)
         );
 
-        const dl = new DataLayer(company);
-        const updatedEmp = dl.updateEmployee(updateEmp);
+        const dl = new DataLayer(COMPANY_NAME);
+        let updatedEmp;
+        
+        try {
+            updatedEmp = dl.updateEmployee(updateEmp);
+        } catch (dbError) {
+            dl.close();
+            if (dbError.message && (dbError.message.includes('Duplicate') || dbError.message.includes('unique'))) {
+                return res.json({ error: 'Employee number must be unique. This emp_no already exists in the database.' });
+            }
+            throw dbError;
+        }
+        
         dl.close();
 
         if (!updatedEmp) {
@@ -177,7 +199,7 @@ router.delete('/employee', (req, res) => {
             return res.json({ error: 'Employee ID is required.' });
         }
 
-        const dl = new DataLayer('temp');
+        const dl = new DataLayer(COMPANY_NAME);
         const rowsDeleted = dl.deleteEmployee(emp_id);
         dl.close();
 
