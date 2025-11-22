@@ -3,11 +3,41 @@
 const express = require('express');
 const router = express.Router();
 const DataLayer = require('companydata');
-const Employee = DataLayer.prototype.Employee;
-const { validateEmployee, validateEmployeeUpdate } = require('../businessLayer/employeeValidation');
+const Timecard = DataLayer.prototype.Timecard;
+const { validateTimecard, validateTimecardUpdate } = require('../businessLayer/timecardValidation');
 const { COMPANY_NAME } = require('../config');
 
-router.get('/employee', (req, res) => {
+router.get('/timecard', (req, res) => {
+    try {
+        const timecard_id = parseInt(req.query.timecard_id);
+
+        if (!timecard_id) {
+            return res.json({ error: 'Timecard ID is required.' });
+        }
+
+        const dl = new DataLayer(COMPANY_NAME);
+        const timecard = dl.getTimecard(timecard_id);
+        dl.close();
+
+        if (!timecard) {
+            return res.json({ error: 'Timecard not found.' });
+        }
+
+        res.json({
+            timecard: {
+                timecard_id: timecard.getId(),
+                start_time: timecard.getStartTime(),
+                end_time: timecard.getEndTime(),
+                emp_id: timecard.getEmpId()
+            }
+        });
+    } catch (error) {
+        console.error(error);
+        res.json({ error: 'Failed to retrieve timecard.' });
+    }
+});
+
+router.get('/timecards', (req, res) => {
     try {
         const emp_id = parseInt(req.query.emp_id);
 
@@ -16,201 +46,118 @@ router.get('/employee', (req, res) => {
         }
 
         const dl = new DataLayer(COMPANY_NAME);
-        const employee = dl.getEmployee(emp_id);
+        const timecards = dl.getAllTimecard(emp_id);
         dl.close();
 
-        if (!employee) {
-            return res.json({ error: 'Employee not found.' });
-        }
-
-        res.json({
-            employee: {
-                emp_id: employee.getId(),
-                emp_name: employee.getEmpName(),
-                emp_no: employee.getEmpNo(),
-                hire_date: employee.getHireDate(),
-                job: employee.getJob(),
-                salary: employee.getSalary(),
-                dept_id: employee.getDeptId(),
-                mng_id: employee.getMngId()
-            }
-        });
-    } catch (error) {
-        console.error(error);
-        res.json({ error: 'Failed to retrieve employee.' });
-    }
-});
-
-router.get('/employees', (req, res) => {
-    try {
-        const dl = new DataLayer(COMPANY_NAME);
-        const employees = dl.getAllEmployee(COMPANY_NAME);
-        dl.close();
-
-        const result = employees.map(emp => ({
-            employee: {
-                emp_id: emp.getId(),
-                emp_name: emp.getEmpName(),
-                emp_no: emp.getEmpNo(),
-                hire_date: emp.getHireDate(),
-                job: emp.getJob(),
-                salary: emp.getSalary(),
-                dept_id: emp.getDeptId(),
-                mng_id: emp.getMngId()
+        const result = timecards.map(tc => ({
+            timecard: {
+                timecard_id: tc.getId(),
+                start_time: tc.getStartTime(),
+                end_time: tc.getEndTime(),
+                emp_id: tc.getEmpId()
             }
         }));
 
         res.json(result);
     } catch (error) {
         console.error(error);
-        res.json({ error: 'Failed to retrieve employees.' });
+        res.json({ error: 'Failed to retrieve timecards.' });
     }
 });
 
-router.put('/employee', (req, res) => {
+router.put('/timecard', (req, res) => {
     try {
-        const { emp_name, emp_no, hire_date, job, salary, dept_id, mng_id } = req.body;
+        const { emp_id, start_time, end_time } = req.body;
 
-        const validationError = validateEmployee(COMPANY_NAME, emp_name, emp_no, hire_date, job, salary, dept_id, mng_id);
+        const validationError = validateTimecard(COMPANY_NAME, emp_id, start_time, end_time);
         if (validationError) {
             return res.json({ error: validationError });
         }
 
-        const newEmp = new Employee(
-            emp_name,
-            emp_no,
-            hire_date,
-            job,
-            parseFloat(salary),
-            parseInt(dept_id),
-            parseInt(mng_id)
-        );
+        const newTimecard = new Timecard(start_time, end_time, parseInt(emp_id));
 
         const dl = new DataLayer(COMPANY_NAME);
-        let insertedEmp;
-        
-        try {
-            insertedEmp = dl.insertEmployee(newEmp);
-        } catch (dbError) {
-            dl.close();
-            if (dbError.message && (dbError.message.includes('Duplicate') || dbError.message.includes('unique'))) {
-                return res.json({ error: 'Employee number must be unique. This emp_no already exists in the database.' });
-            }
-            throw dbError;
-        }
-        
+        const insertedTimecard = dl.insertTimecard(newTimecard);
         dl.close();
 
-        if (!insertedEmp) {
-            return res.json({ error: 'Failed to insert employee. Employee number may already exist or invalid data.' });
+        if (!insertedTimecard) {
+            return res.json({ error: 'Failed to insert timecard. Invalid data.' });
         }
 
         res.json({
             success: {
-                employee: {
-                    emp_id: insertedEmp.getId(),
-                    emp_name: insertedEmp.getEmpName(),
-                    emp_no: insertedEmp.getEmpNo(),
-                    hire_date: insertedEmp.getHireDate(),
-                    job: insertedEmp.getJob(),
-                    salary: insertedEmp.getSalary(),
-                    dept_id: insertedEmp.getDeptId(),
-                    mng_id: insertedEmp.getMngId()
+                timecard: {
+                    timecard_id: insertedTimecard.getId(),
+                    start_time: insertedTimecard.getStartTime(),
+                    end_time: insertedTimecard.getEndTime(),
+                    emp_id: insertedTimecard.getEmpId()
                 }
             }
         });
     } catch (error) {
         console.error(error);
-        res.json({ error: 'Failed to insert employee.' });
+        res.json({ error: 'Failed to insert timecard.' });
     }
 });
 
-router.post('/employee', (req, res) => {
+router.post('/timecard', (req, res) => {
     try {
+        const timecard_id = req.body.timecard_id;
         const emp_id = req.body.emp_id;
-        const emp_name = req.body.emp_name;
-        const emp_no = req.body.emp_no;
-        const hire_date = req.body.hire_date;
-        const job = req.body.job;
-        const salary = req.body.salary;
-        const dept_id = req.body.dept_id;
-        const mng_id = req.body.mng_id;
+        const start_time = req.body.start_time;
+        const end_time = req.body.end_time;
 
-        const validationError = validateEmployeeUpdate(COMPANY_NAME, emp_id, emp_name, emp_no, hire_date, job, salary, dept_id, mng_id);
+        const validationError = validateTimecardUpdate(COMPANY_NAME, timecard_id, emp_id, start_time, end_time);
         if (validationError) {
             return res.json({ error: validationError });
         }
 
-        const updateEmp = new Employee(
-            emp_name,
-            emp_no,
-            hire_date,
-            job,
-            parseFloat(salary),
-            parseInt(dept_id),
-            parseInt(mng_id),
-            parseInt(emp_id)
-        );
+        const updateTimecard = new Timecard(start_time, end_time, parseInt(emp_id), parseInt(timecard_id));
 
         const dl = new DataLayer(COMPANY_NAME);
-        let updatedEmp;
-        
-        try {
-            updatedEmp = dl.updateEmployee(updateEmp);
-        } catch (dbError) {
-            dl.close();
-            if (dbError.message && (dbError.message.includes('Duplicate') || dbError.message.includes('unique'))) {
-                return res.json({ error: 'Employee number must be unique. This emp_no already exists in the database.' });
-            }
-            throw dbError;
-        }
-        
+        const updatedTimecard = dl.updateTimecard(updateTimecard);
         dl.close();
 
-        if (!updatedEmp) {
-            return res.json({ error: 'Failed to update employee. Employee may not exist or invalid data.' });
+        if (!updatedTimecard) {
+            return res.json({ error: 'Failed to update timecard. Timecard may not exist or invalid data.' });
         }
 
         res.json({
             success: {
-                employee: {
-                    emp_id: updatedEmp.getId(),
-                    emp_name: updatedEmp.getEmpName(),
-                    emp_no: updatedEmp.getEmpNo(),
-                    hire_date: updatedEmp.getHireDate(),
-                    job: updatedEmp.getJob(),
-                    salary: updatedEmp.getSalary(),
-                    dept_id: updatedEmp.getDeptId(),
-                    mng_id: updatedEmp.getMngId()
+                timecard: {
+                    timecard_id: updatedTimecard.getId(),
+                    start_time: updatedTimecard.getStartTime(),
+                    end_time: updatedTimecard.getEndTime(),
+                    emp_id: updatedTimecard.getEmpId()
                 }
             }
         });
     } catch (error) {
         console.error(error);
-        res.json({ error: 'Failed to update employee.' });
+        res.json({ error: 'Failed to update timecard.' });
     }
 });
 
-router.delete('/employee', (req, res) => {
+router.delete('/timecard', (req, res) => {
     try {
-        const emp_id = parseInt(req.query.emp_id);
+        const timecard_id = parseInt(req.query.timecard_id);
 
-        if (!emp_id) {
-            return res.json({ error: 'Employee ID is required.' });
+        if (!timecard_id) {
+            return res.json({ error: 'Timecard ID is required.' });
         }
 
         const dl = new DataLayer(COMPANY_NAME);
-        const rowsDeleted = dl.deleteEmployee(emp_id);
+        const rowsDeleted = dl.deleteTimecard(timecard_id);
         dl.close();
 
         if (rowsDeleted === 0) {
-            return res.json({ error: 'Employee not found or could not be deleted.' });
+            return res.json({ error: 'Timecard not found or could not be deleted.' });
         }
 
-        res.json({ success: `Employee ${emp_id} deleted.` });
+        res.json({ success: `Timecard ${timecard_id} deleted.` });
     } catch (error) {
         console.error(error);
-        res.json({ error: 'Failed to delete employee.' });
+        res.json({ error: 'Failed to delete timecard.' });
     }
 });
 
