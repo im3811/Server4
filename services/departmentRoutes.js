@@ -124,4 +124,41 @@ router.post('/department', (req, res) => {
             success: {
                 department: {
                     dept_id: updatedDept.getId(),
-                    company: updatedDept.getC
+                    company: updatedDept.getCompany(),
+                    dept_name: updatedDept.getDeptName(),
+                    dept_no: updatedDept.getDeptNo(),
+                    location: updatedDept.getLocation()
+                }
+            }
+        });
+    } catch (error) {
+        console.error(error);
+        res.json({ error: 'Failed to update department.' });
+    }
+});
+
+router.delete('/department', (req, res) => {
+    try {
+        const company = req.query.company;
+        const dept_id = parseInt(req.query.dept_id);
+
+        if (!company || !dept_id) {
+            return res.json({ error: 'Company name and department ID are required.' });
+        }
+
+        const dl = new DataLayer(company);
+        const rowsDeleted = dl.deleteDepartment(company, dept_id);
+        dl.close();
+
+        if (rowsDeleted === 0) {
+            return res.json({ error: 'Department not found or could not be deleted.' });
+        }
+
+        res.json({ success: `Department ${dept_id} from ${company} deleted.` });
+    } catch (error) {
+        console.error(error);
+        res.json({ error: 'Failed to delete department.' });
+    }
+});
+
+module.exports = router;
