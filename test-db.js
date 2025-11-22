@@ -1,49 +1,88 @@
 const DataLayer = require('companydata');
 
-console.log('Testing database connection...');
-console.log('DataLayer module:', typeof DataLayer);
+console.log('==============================================');
+console.log('Testing Database Connection');
+console.log('==============================================\n');
 
-if (typeof DataLayer !== 'function') {
-    console.error('❌ ERROR: DataLayer is not a constructor function');
-    console.error('   This means companydata module is not installed correctly');
-    console.error('\nFix:');
-    console.error('1. Make sure "DataLayer for Students/companydata" folder exists');
-    console.error('2. Run: npm install');
-    process.exit(1);
-}
+const COMPANY_NAME = 'im3811';
+const DB_NAME = `${COMPANY_NAME}_company`;
+
+console.log(`Company: ${COMPANY_NAME}`);
+console.log(`Database: ${DB_NAME}\n`);
 
 let dl;
 try {
-    console.log('\n1. Creating DataLayer instance...');
-    dl = new DataLayer('im3811');
-    console.log('   ✅ DataLayer created successfully');
+    console.log('Step 1: Creating DataLayer instance...');
+    dl = new DataLayer(COMPANY_NAME);
+    console.log('   ✅ DataLayer created successfully\n');
 
-    console.log('\n2. Testing connection by getting departments...');
-    const depts = dl.getAllDepartment('im3811');
-    console.log(`   ✅ Connected! Found ${depts.length} departments`);
-
-    if (depts.length === 0) {
-        console.log('\n📝 Database is empty (this is normal for first run)');
-        console.log('   Use your API to add data via Postman');
+    console.log('Step 2: Testing getAllDepartment...');
+    const depts = dl.getAllDepartment(COMPANY_NAME);
+    
+    if (depts && Array.isArray(depts)) {
+        console.log(`   ✅ Connected! Found ${depts.length} departments\n`);
+        
+        if (depts.length === 0) {
+            console.log('📝 Database is empty (this is normal for first run)');
+            console.log('   Use Postman to add departments via your API\n');
+        } else {
+            console.log('📋 Departments in database:');
+            depts.forEach(dept => {
+                console.log(`   - ID: ${dept.getId()} | ${dept.getDeptName()} (${dept.getDeptNo()}) | ${dept.getLocation()}`);
+            });
+            console.log();
+        }
     } else {
-        console.log('\n📋 Departments in database:');
-        depts.forEach(dept => {
-            console.log(`   - ${dept.getDeptName()} (${dept.getDeptNo()})`);
-        });
+        console.log('   ❌ Query returned invalid data\n');
     }
+
+    console.log('Step 3: Testing getAllEmployee...');
+    const employees = dl.getAllEmployee(COMPANY_NAME);
+    
+    if (employees && Array.isArray(employees)) {
+        console.log(`   ✅ Found ${employees.length} employees\n`);
+        
+        if (employees.length > 0) {
+            console.log('📋 Employees in database:');
+            employees.forEach(emp => {
+                console.log(`   - ID: ${emp.getId()} | ${emp.getEmpName()} (${emp.getEmpNo()}) | ${emp.getJob()}`);
+            });
+            console.log();
+        }
+    }
+
+    console.log('==============================================');
+    console.log('✅ SUCCESS! Database is working correctly!');
+    console.log('==============================================\n');
+    console.log('Next steps:');
+    console.log('1. Run: npm start');
+    console.log('2. Test with Postman: http://localhost:8080/CompanyServices/departments?company=im3811');
+    console.log();
 
 } catch (error) {
     console.error('\n❌ ERROR:', error.message);
-    console.error('\nPossible causes:');
-    console.error('1. Not connected to RIT VPN/network');
-    console.error('2. Database server is down');
-    console.error('3. companydata module not installed correctly');
+    console.error('\nFull error details:');
+    console.error(error);
+    console.error('\n==============================================');
+    console.error('Troubleshooting:');
+    console.error('==============================================');
+    console.error('1. MySQL running? Check: sudo systemctl status mysql');
+    console.error('2. Database created? Run setup-database.sql in MySQL Workbench');
+    console.error('3. Credentials correct? Check DataLayer.js line with host/usr/pwd');
+    console.error('4. Check connection: mysql -u root -p -e "SHOW DATABASES;"');
+    console.error();
+    
+    if (error.message.includes('ECONNREFUSED')) {
+        console.error('❌ MySQL server not running or not on port 3306');
+    } else if (error.message.includes('Access denied')) {
+        console.error('❌ Wrong username/password in DataLayer.js');
+    } else if (error.message.includes('Unknown database')) {
+        console.error('❌ Database im3811_company does not exist');
+        console.error('   Solution: Run setup-database.sql in MySQL Workbench');
+    }
 } finally {
     if (dl && typeof dl.close === 'function') {
         dl.close();
-        console.log('\n3. Database connection closed ✓');
+        console.log('Database connection closed ✓\n');
     }
 }
-
-console.log('\n' + '='.repeat(50));
-console.log('Test complete!');
