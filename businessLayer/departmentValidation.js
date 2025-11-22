@@ -25,7 +25,6 @@ function validateDepartment(company, dept_name, dept_no, location) {
 
     const dl = new DataLayer(company);
     const existingDept = dl.getDepartmentNo(company, dept_no);
-    dl.close();
 
     if (existingDept) {
         return 'Department number must be unique. This dept_no already exists.';
@@ -59,17 +58,14 @@ function validateDepartmentUpdate(company, dept_id, dept_name, dept_no, location
     
     const existingDept = dl.getDepartment(company, parseInt(dept_id));
     if (!existingDept) {
-        dl.close();
         return 'Department ID does not exist.';
     }
 
     const deptWithSameNo = dl.getDepartmentNo(company, dept_no);
     if (deptWithSameNo && deptWithSameNo.getId() !== parseInt(dept_id)) {
-        dl.close();
         return 'Department number must be unique. This dept_no is already used by another department.';
     }
 
-    dl.close();
     return null;
 }
 

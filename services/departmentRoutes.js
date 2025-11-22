@@ -17,7 +17,6 @@ router.get('/department', (req, res) => {
 
         const dl = new DataLayer(COMPANY_NAME);
         const department = dl.getDepartment(COMPANY_NAME, dept_id);
-        dl.close();
 
         if (!department) {
             return res.json({ error: 'Department not found.' });
@@ -33,7 +32,7 @@ router.get('/department', (req, res) => {
             }
         });
     } catch (error) {
-        console.error(error);
+        console.error('GET /department error:', error);
         res.json({ error: 'Failed to retrieve department.' });
     }
 });
@@ -42,7 +41,6 @@ router.get('/departments', (req, res) => {
     try {
         const dl = new DataLayer(COMPANY_NAME);
         const departments = dl.getAllDepartment(COMPANY_NAME);
-        dl.close();
 
         const result = departments.map(dept => ({
             department: {
@@ -56,7 +54,7 @@ router.get('/departments', (req, res) => {
 
         res.json(result);
     } catch (error) {
-        console.error(error);
+        console.error('GET /departments error:', error);
         res.json({ error: 'Failed to retrieve departments.' });
     }
 });
@@ -72,8 +70,16 @@ router.put('/department', (req, res) => {
 
         const newDept = new Department(COMPANY_NAME, dept_name, dept_no, location);
         const dl = new DataLayer(COMPANY_NAME);
-        const insertedDept = dl.insertDepartment(newDept);
-        dl.close();
+        
+        let insertedDept;
+        try {
+            console.log('Attempting to insert department:', newDept);
+            insertedDept = dl.insertDepartment(newDept);
+            console.log('Insert result:', insertedDept);
+        } catch (dbError) {
+            console.error('DATABASE INSERT ERROR:', dbError);
+            return res.json({ error: 'Database error: ' + dbError.message });
+        }
 
         if (!insertedDept) {
             return res.json({ error: 'Failed to insert department. Department number may already exist.' });
@@ -91,7 +97,7 @@ router.put('/department', (req, res) => {
             }
         });
     } catch (error) {
-        console.error(error);
+        console.error('PUT /department error:', error);
         res.json({ error: 'Failed to insert department.' });
     }
 });
@@ -110,8 +116,16 @@ router.post('/department', (req, res) => {
 
         const updateDept = new Department(COMPANY_NAME, dept_name, dept_no, location, parseInt(dept_id));
         const dl = new DataLayer(COMPANY_NAME);
-        const updatedDept = dl.updateDepartment(updateDept);
-        dl.close();
+        
+        let updatedDept;
+        try {
+            console.log('Attempting to update department:', updateDept);
+            updatedDept = dl.updateDepartment(updateDept);
+            console.log('Update result:', updatedDept);
+        } catch (dbError) {
+            console.error('DATABASE UPDATE ERROR:', dbError);
+            return res.json({ error: 'Database error: ' + dbError.message });
+        }
 
         if (!updatedDept) {
             return res.json({ error: 'Failed to update department. Department may not exist or dept_no already exists.' });
@@ -129,7 +143,7 @@ router.post('/department', (req, res) => {
             }
         });
     } catch (error) {
-        console.error(error);
+        console.error('POST /department error:', error);
         res.json({ error: 'Failed to update department.' });
     }
 });
@@ -144,7 +158,6 @@ router.delete('/department', (req, res) => {
 
         const dl = new DataLayer(COMPANY_NAME);
         const rowsDeleted = dl.deleteDepartment(COMPANY_NAME, dept_id);
-        dl.close();
 
         if (rowsDeleted === 0) {
             return res.json({ error: 'Department not found or could not be deleted.' });
@@ -152,7 +165,7 @@ router.delete('/department', (req, res) => {
 
         res.json({ success: `Department ${dept_id} from ${COMPANY_NAME} deleted.` });
     } catch (error) {
-        console.error(error);
+        console.error('DELETE /department error:', error);
         res.json({ error: 'Failed to delete department.' });
     }
 });
