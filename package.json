@@ -1,0 +1,21 @@
+{
+  "name": "companyservices",
+  "version": "1.0.0",
+  "description": "RESTful service for company timecard tracking",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "author": "Your Name",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "body-parser": "^1.20.2",
+    "date-fns": "^2.30.0",
+    "companydata": "file:./data/DataLayer for Students/companydata"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
