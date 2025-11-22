@@ -1,6 +1,6 @@
 'use strict';
 
-const DataLayer = require('../data/DataLayer for Students/companydata');
+const DataLayer = require('companydata');
 const { parse, isValid, getDay, isFuture } = require('date-fns');
 
 function validateEmployee(company, emp_name, emp_no, hire_date, job, salary, dept_id, mng_id) {

@@ -1,6 +1,6 @@
 'use strict';
 
-const DataLayer = require('../data/DataLayer for Students/companydata');
+const DataLayer = require('companydata');
 
 function validateDepartment(company, dept_name, dept_no, location) {
     if (!company || !dept_name || !dept_no || !location) {

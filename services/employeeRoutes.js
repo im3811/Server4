@@ -2,7 +2,7 @@
 
 const express = require('express');
 const router = express.Router();
-const DataLayer = require('../data/DataLayer for Students/companydata');
+const DataLayer = require('companydata');
 const Employee = DataLayer.prototype.Employee;
 const { validateEmployee, validateEmployeeUpdate } = require('../businessLayer/employeeValidation');
 

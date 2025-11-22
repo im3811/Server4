@@ -1,6 +1,6 @@
 'use strict';
 
-const DataLayer = require('../data/DataLayer for Students/companydata');
+const DataLayer = require('companydata');
 const { parse, isValid, getDay, differenceInHours, differenceInDays, subDays, isFuture, isSameDay, startOfDay } = require('date-fns');
 
 function validateTimecard(company, emp_id, start_time, end_time) {
