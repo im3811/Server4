@@ -9,7 +9,6 @@ router.delete('/company', (req, res) => {
     try {
         const dl = new DataLayer(COMPANY_NAME);
         const rowsDeleted = dl.deleteCompany(COMPANY_NAME);
-        dl.close();
 
         res.json({ success: `${COMPANY_NAME}'s information deleted.` });
     } catch (error) {

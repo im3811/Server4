@@ -1,7 +1,7 @@
 'use strict';
 
 const DataLayer = require('companydata');
-const { parse, isValid, getDay, differenceInHours, differenceInDays, subDays, isFuture, isSameDay, startOfDay } = require('date-fns');
+const { parse, isValid, getDay, differenceInHours, subDays, isFuture, isSameDay, startOfDay } = require('date-fns');
 
 function validateTimecard(company, emp_id, start_time, end_time) {
     if (!company || !emp_id || !start_time || !end_time) {
@@ -75,7 +75,6 @@ function validateTimecard(company, emp_id, start_time, end_time) {
 
     const employee = dl.getEmployee(parseInt(emp_id));
     if (!employee) {
-        dl.close();
         return 'Employee ID does not exist in your company.';
     }
 
@@ -87,12 +86,9 @@ function validateTimecard(company, emp_id, start_time, end_time) {
         const tcStartDay = startOfDay(tcStartTime);
         
         if (isSameDay(startDay_startOfDay, tcStartDay)) {
-            dl.close();
             return 'Start time cannot be on the same day as an existing timecard for this employee.';
         }
     }
-
-    dl.close();
 
     return null;
 }
@@ -173,13 +169,11 @@ function validateTimecardUpdate(company, timecard_id, emp_id, start_time, end_ti
 
     const existingTimecard = dl.getTimecard(parseInt(timecard_id));
     if (!existingTimecard) {
-        dl.close();
         return 'Timecard ID does not exist.';
     }
 
     const employee = dl.getEmployee(parseInt(emp_id));
     if (!employee) {
-        dl.close();
         return 'Employee ID does not exist in your company.';
     }
 
@@ -195,12 +189,9 @@ function validateTimecardUpdate(company, timecard_id, emp_id, start_time, end_ti
         const tcStartDay = startOfDay(tcStartTime);
         
         if (isSameDay(startDay_startOfDay, tcStartDay)) {
-            dl.close();
             return 'Start time cannot be on the same day as an existing timecard for this employee.';
         }
     }
-
-    dl.close();
 
     return null;
 }

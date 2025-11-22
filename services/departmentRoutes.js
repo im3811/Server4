@@ -73,9 +73,7 @@ router.put('/department', (req, res) => {
         
         let insertedDept;
         try {
-            console.log('Attempting to insert department:', newDept);
             insertedDept = dl.insertDepartment(newDept);
-            console.log('Insert result:', insertedDept);
         } catch (dbError) {
             console.error('DATABASE INSERT ERROR:', dbError);
             return res.json({ error: 'Database error: ' + dbError.message });
@@ -119,9 +117,7 @@ router.post('/department', (req, res) => {
         
         let updatedDept;
         try {
-            console.log('Attempting to update department:', updateDept);
             updatedDept = dl.updateDepartment(updateDept);
-            console.log('Update result:', updatedDept);
         } catch (dbError) {
             console.error('DATABASE UPDATE ERROR:', dbError);
             return res.json({ error: 'Database error: ' + dbError.message });

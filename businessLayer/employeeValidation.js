@@ -50,19 +50,16 @@ function validateEmployee(company, emp_name, emp_no, hire_date, job, salary, dep
 
     const dept = dl.getDepartment(company, parseInt(dept_id));
     if (!dept) {
-        dl.close();
         return 'Department ID does not exist in your company.';
     }
 
     if (parseInt(mng_id) !== 0) {
         const manager = dl.getEmployee(parseInt(mng_id));
         if (!manager) {
-            dl.close();
             return 'Manager ID does not exist.';
         }
     }
 
-    dl.close();
     return null;
 }
 
@@ -117,25 +114,21 @@ function validateEmployeeUpdate(company, emp_id, emp_name, emp_no, hire_date, jo
 
     const existingEmp = dl.getEmployee(parseInt(emp_id));
     if (!existingEmp) {
-        dl.close();
         return 'Employee ID does not exist.';
     }
 
     const dept = dl.getDepartment(company, parseInt(dept_id));
     if (!dept) {
-        dl.close();
         return 'Department ID does not exist in your company.';
     }
 
     if (parseInt(mng_id) !== 0) {
         const manager = dl.getEmployee(parseInt(mng_id));
         if (!manager) {
-            dl.close();
             return 'Manager ID does not exist.';
         }
     }
 
-    dl.close();
     return null;
 }
 

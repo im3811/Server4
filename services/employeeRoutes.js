@@ -17,7 +17,6 @@ router.get('/employee', (req, res) => {
 
         const dl = new DataLayer(COMPANY_NAME);
         const employee = dl.getEmployee(emp_id);
-        dl.close();
 
         if (!employee) {
             return res.json({ error: 'Employee not found.' });
@@ -45,7 +44,6 @@ router.get('/employees', (req, res) => {
     try {
         const dl = new DataLayer(COMPANY_NAME);
         const employees = dl.getAllEmployee(COMPANY_NAME);
-        dl.close();
 
         const result = employees.map(emp => ({
             employee: {
@@ -92,14 +90,11 @@ router.put('/employee', (req, res) => {
         try {
             insertedEmp = dl.insertEmployee(newEmp);
         } catch (dbError) {
-            dl.close();
             if (dbError.message && (dbError.message.includes('Duplicate') || dbError.message.includes('unique'))) {
                 return res.json({ error: 'Employee number must be unique. This emp_no already exists in the database.' });
             }
             throw dbError;
         }
-        
-        dl.close();
 
         if (!insertedEmp) {
             return res.json({ error: 'Failed to insert employee. Employee number may already exist or invalid data.' });
@@ -158,14 +153,11 @@ router.post('/employee', (req, res) => {
         try {
             updatedEmp = dl.updateEmployee(updateEmp);
         } catch (dbError) {
-            dl.close();
             if (dbError.message && (dbError.message.includes('Duplicate') || dbError.message.includes('unique'))) {
                 return res.json({ error: 'Employee number must be unique. This emp_no already exists in the database.' });
             }
             throw dbError;
         }
-        
-        dl.close();
 
         if (!updatedEmp) {
             return res.json({ error: 'Failed to update employee. Employee may not exist or invalid data.' });
@@ -201,7 +193,6 @@ router.delete('/employee', (req, res) => {
 
         const dl = new DataLayer(COMPANY_NAME);
         const rowsDeleted = dl.deleteEmployee(emp_id);
-        dl.close();
 
         if (rowsDeleted === 0) {
             return res.json({ error: 'Employee not found or could not be deleted.' });

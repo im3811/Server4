@@ -17,7 +17,6 @@ router.get('/timecard', (req, res) => {
 
         const dl = new DataLayer(COMPANY_NAME);
         const timecard = dl.getTimecard(timecard_id);
-        dl.close();
 
         if (!timecard) {
             return res.json({ error: 'Timecard not found.' });
@@ -47,7 +46,6 @@ router.get('/timecards', (req, res) => {
 
         const dl = new DataLayer(COMPANY_NAME);
         const timecards = dl.getAllTimecard(emp_id);
-        dl.close();
 
         const result = timecards.map(tc => ({
             timecard: {
@@ -78,7 +76,6 @@ router.put('/timecard', (req, res) => {
 
         const dl = new DataLayer(COMPANY_NAME);
         const insertedTimecard = dl.insertTimecard(newTimecard);
-        dl.close();
 
         if (!insertedTimecard) {
             return res.json({ error: 'Failed to insert timecard. Invalid data.' });
@@ -116,7 +113,6 @@ router.post('/timecard', (req, res) => {
 
         const dl = new DataLayer(COMPANY_NAME);
         const updatedTimecard = dl.updateTimecard(updateTimecard);
-        dl.close();
 
         if (!updatedTimecard) {
             return res.json({ error: 'Failed to update timecard. Timecard may not exist or invalid data.' });
@@ -148,7 +144,6 @@ router.delete('/timecard', (req, res) => {
 
         const dl = new DataLayer(COMPANY_NAME);
         const rowsDeleted = dl.deleteTimecard(timecard_id);
-        dl.close();
 
         if (rowsDeleted === 0) {
             return res.json({ error: 'Timecard not found or could not be deleted.' });
